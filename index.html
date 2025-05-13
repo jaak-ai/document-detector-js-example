@@ -6,7 +6,7 @@
 		<title>Document</title>
 		<script
 			type="module"
-			src="https://unpkg.com/@jaak.ai/document-detector"></script>
+			src="https://unpkg.com/@jaak.ai/document-detector@3.0.0-dev.2"></script>
 	</head>
 	<body>
 		<div class="content">
@@ -95,5 +95,9 @@
 		};
 
 		detector.config = userConfig;
+        
+        detector.addEventListener("results", e => console.log("results", e.detail));
+        detector.addEventListener("streamStatus", e => console.log("streamStatus", e.detail));
+        detector.addEventListener("status", e => console.log("status", e.detail));
 	</script>
 </html>
