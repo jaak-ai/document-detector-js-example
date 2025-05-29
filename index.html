@@ -1,103 +1,332 @@
 <!DOCTYPE html>
-<html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Document</title>
-		<script
-			type="module"
-			src="https://unpkg.com/@jaak.ai/document-detector@3.0.0-dev.2"></script>
-	</head>
-	<body>
-		<div class="content">
-			<div class="card">
-				<div class="card-title">
-					<h1>Document Detector</h1>
-				</div>
-				<div class="frame">
-					<div class="component-container">
-						<document-detector></document-detector>
-					</div>
-				</div>
-			</div>
-		</div>
-	</body>
-	<style>
-		.content {
-			height: 90vh;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			padding: 10px;
-			margin-top: 1rem;
-		}
-		.card {
-			border-radius: 10px;
-			border: solid 1px #e5e5e5;
-			box-shadow: 0 10px 40px 0 rgba(32, 41, 69, 0.1);
-			height: 100%;
-			max-height: 560px;
-			width: 80%;
-			.card-title {
-				text-align: center;
-				margin-bottom: 20px;
-			}
-		}
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Document Detector - Ejemplo Avanzado</title>
 
-		/* Es el area total que cubrira el video*/
-		.frame {
-			align-items: center;
-			overflow-y: hidden;
-			position: relative;
-			width: 100%;
-			height: calc(560px - 80px); /* 560px is the cards max height; 80px is the height of the card-title */
-			
-		}
-		.component-container {
-			position: absolute;
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			left: 0;
-			top: 0;
-			bottom: 0;
-			right: 0;
-		}
-	</style>
-	<script>
-		const detector = document.querySelector('document-detector');
-		const userConfig = {
-			key: '',
-			mode: 'video-camera',
-			accept: 'image/*',
-			placeholder: '',
-			cameraSource: 'environment',
-			width: '100%',
-			height: '100%',
-			video: {
-				aspectRatio: 16 / 9,
-				width: { ideal: 1280, max: 1280, min: 640 },
-				height: { ideal: 720, max: 720, min: 360 },
-				advanced: [
-					{ width: { ideal: 1280, exact: 1280 } },
-					{ width: { exact: 1024 } },
-				],
-			},
-			documentDetect: true,
-			size: 2048,
-			translate: {
-				front: 'Acerca el doc',
-				back: 'Acerca el reverso del doc',
-				changeSide: 'Voltea tu doc',
-				adjustAngle: 'Rota tu doc',
-				cameraFeedbackBlur: 'No te muevas',
-			},
-		};
+    <script
+            type="module"
+            src="https://unpkg.com/@jaak.ai/document-detector@3.0.0-dev.4"></script>
 
-		detector.config = userConfig;
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .detector-container {
+            display: flex;
+            justify-content: center;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 10px 15px;
+            background-color: #4a7e4a;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .status-panel {
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 5px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .status-active {
+            background-color: #4CAF50;
+        }
+
+        .status-waiting {
+            background-color: #FFC107;
+        }
+
+        .status-error {
+            background-color: #F44336;
+        }
+
+        .results-panel {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .document-info {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .document-images {
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .image-container {
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .image-container img {
+            max-width: 100%;
+            max-height: 200px;
+        }
+
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            overflow: auto;
+            max-height: 300px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Detector de Documentos - Ejemplo Avanzado</h1>
+
+    <div class="detector-container">
+        <document-detector id="documentDetector"></document-detector>
+    </div>
+
+    <div class="controls">
+        <button id="switchModeBtn">Cambiar modo</button>
+        <button id="stopBtn">Detener</button>
+        <button id="restartBtn">Reiniciar</button>
+        <button id="uploadBtn">Subir archivo</button>
+    </div>
+
+    <div class="status-panel">
+        <h3>Estado del Detector</h3>
+        <div>
+            <span id="statusIndicator" class="status-indicator status-waiting"></span>
+            <span id="statusText">Inicializando...</span>
+        </div>
+    </div>
+
+    <div class="results-panel">
+        <div class="document-info">
+            <h3>Información del Documento</h3>
+            <div id="documentInfo">
+                <p>Esperando detección de documento...</p>
+            </div>
+        </div>
+
+        <div class="document-images">
+            <h3>Imágenes Capturadas</h3>
+            <div id="documentImages">
+                <p>No hay imágenes disponibles</p>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <h3>Datos Completos (JSON)</h3>
+        <pre id="jsonOutput">Esperando resultados...</pre>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const detector = document.getElementById('documentDetector');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const statusText = document.getElementById('statusText');
+        const documentInfo = document.getElementById('documentInfo');
+        const documentImages = document.getElementById('documentImages');
+        const jsonOutput = document.getElementById('jsonOutput');
         
-        detector.addEventListener("results", e => console.log("results", e.detail));
-        detector.addEventListener("streamStatus", e => console.log("streamStatus", e.detail));
-        detector.addEventListener("status", e => console.log("status", e.detail));
-	</script>
+        // Configurar el componente
+        detector.config = {
+            key: '',
+            width: '640px',
+            height: '480px',
+            mode: 'video-camera',
+            placeholder: 'Selecciona un documento',
+            buttonText: 'Subir documento',
+            size: 2048,
+            translate: {
+                front: 'Acerca la parte frontal de tu documento',
+                back: 'Acerca la parte trasera de tu documento',
+                changeSide: 'Voltea tu documento',
+                adjustAngle: 'Ajusta el ángulo',
+                cameraFeedbackBlur: 'Mantén la cámara estable'
+            }
+        };
+        
+        // Manejar eventos de estado
+        detector.addEventListener('status', (event) => {
+            const status = event.detail;
+            statusText.textContent = status;
+            
+            // Actualizar indicador visual según el estado
+            statusIndicator.className = 'status-indicator';
+            
+            if (status.includes('ERROR') || status.includes('FAILED')) {
+                statusIndicator.classList.add('status-error');
+            } else if (status.includes('SUCCESS') || status.includes('DETECTED')) {
+                statusIndicator.classList.add('status-active');
+            } else {
+                statusIndicator.classList.add('status-waiting');
+            }
+        });
+        
+        // Manejar resultados
+        detector.addEventListener('results', (event) => {
+            const data = event.detail;
+            jsonOutput.textContent = JSON.stringify(data, null, 2);
+            
+            if (data && data.documentData) {
+                const generalData = data.documentData.generalData;
+                
+                // Mostrar información del documento
+                let infoHTML = '';
+                
+                if (generalData) {
+                    infoHTML += `
+              <p><strong>Tipo:</strong> ${generalData.type || 'No disponible'}</p>
+              <p><strong>Nombre:</strong> ${generalData.name || 'No disponible'}</p>
+              <p><strong>Apellido:</strong> ${generalData.surname || 'No disponible'}</p>
+              <p><strong>Segundo Apellido:</strong> ${generalData.motherSurname || 'No disponible'}</p>
+              <p><strong>Género:</strong> ${generalData.gender || 'No disponible'}</p>
+              <p><strong>Fecha de Nacimiento:</strong> ${generalData.birthDate || 'No disponible'}</p>
+              <p><strong>Dirección:</strong> ${generalData.address || 'No disponible'}</p>
+              <p><strong>Nacionalidad:</strong> ${generalData.nationality || 'No disponible'}</p>
+            `;
+                }
+                
+                // Mostrar datos específicos si existen
+                if (data.documentData.specificData && data.documentData.specificData.length > 0) {
+                    infoHTML += '<h4>Datos Específicos:</h4><ul>';
+                    
+                    data.documentData.specificData.forEach(item => {
+                        infoHTML += `<li><strong>${item.label}:</strong> ${item.value}</li>`;
+                    });
+                    
+                    infoHTML += '</ul>';
+                }
+                
+                documentInfo.innerHTML = infoHTML;
+                
+                // Mostrar imágenes
+                if (generalData && generalData.documentImage) {
+                    const images = generalData.documentImage;
+                    let imagesHTML = '';
+                    
+                    if (images.front) {
+                        imagesHTML += `
+                <div class="image-container">
+                  <h4>Frente</h4>
+                  <img src="data:image/png;base64,${images.front}" alt="Frente del documento">
+                </div>
+              `;
+                    }
+                    
+                    if (images.back) {
+                        imagesHTML += `
+                <div class="image-container">
+                  <h4>Reverso</h4>
+                  <img src="data:image/png;base64,${images.back}" alt="Reverso del documento">
+                </div>
+              `;
+                    }
+                    
+                    if (images.frontFull) {
+                        imagesHTML += `
+                <div class="image-container">
+                  <h4>Frente Completo</h4>
+                  <img src="data:image/png;base64,${images.frontFull}" alt="Frente completo del documento">
+                </div>
+              `;
+                    }
+                    
+                    if (images.backFull) {
+                        imagesHTML += `
+                <div class="image-container">
+                  <h4>Reverso Completo</h4>
+                  <img src="data:image/png;base64,${images.backFull}" alt="Reverso completo del documento">
+                </div>
+              `;
+                    }
+                    
+                    if (images.face) {
+                        imagesHTML += `
+                <div class="image-container">
+                  <h4>Rostro</h4>
+                  <img src="data:image/png;base64,${images.face}" alt="Rostro">
+                </div>
+              `;
+                    }
+                    
+                    if (images.signature) {
+                        imagesHTML += `
+                <div class="image-container">
+                  <h4>Firma</h4>
+                  <img src="data:image/png;base64,${images.signature}" alt="Firma">
+                </div>
+              `;
+                    }
+                    
+                    documentImages.innerHTML = imagesHTML || '<p>No hay imágenes disponibles</p>';
+                }
+            } else {
+                documentInfo.innerHTML = '<p>No se detectó información del documento</p>';
+                documentImages.innerHTML = '<p>No hay imágenes disponibles</p>';
+            }
+        });
+        
+        // Manejar errores
+        detector.addEventListener('componentError', (event) => {
+            console.error('Error:', event.detail);
+            statusIndicator.className = 'status-indicator status-error';
+            statusText.textContent = `ERROR: ${JSON.stringify(event.detail)}`;
+        });
+        
+        // Configurar botones
+        document.getElementById('switchModeBtn').addEventListener('click', async () => {
+            const currentMode = await detector.getMode();
+            detector.switchMode(currentMode === 'video-camera' ? 'upload-file' : 'video-camera');
+        });
+        
+        document.getElementById('stopBtn').addEventListener('click', () => {
+            detector.stopComponent();
+        });
+        
+        document.getElementById('restartBtn').addEventListener('click', () => {
+            detector.restartComponent();
+        });
+        
+        document.getElementById('uploadBtn').addEventListener('click', () => {
+            detector.uploadFile();
+        });
+    });
+</script>
+</body>
 </html>
