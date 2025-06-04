@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Pruebas de Seguridad Client-Side</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 1000px; 
+            margin: 0 auto; 
+            padding: 20px; 
+        }
+        .test-section { 
+            background: #f5f5f5; 
+            padding: 15px; 
+            margin: 10px 0; 
+            border-left: 4px solid #2196f3; 
+        }
+        .test-result { 
+            padding: 10px; 
+            margin: 5px 0; 
+            border-radius: 4px; 
+        }
+        .pass { background-color: #d4edda; color: #155724; }
+        .fail { background-color: #f8d7da; color: #721c24; }
+        button { 
+            background: #2196f3; 
+            color: white; 
+            border: none; 
+            padding: 10px 15px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            margin: 5px; 
+        }
+        #results { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Pruebas de Seguridad Client-Side</h1>
+    
+    <div class="test-section">
+        <h3>Tests de Protección Anti-Tampering</h3>
+        <button onclick="testFetchOverride()">Test: Override de fetch()</button>
+        <button onclick="testBlinkServiceOverride()">Test: Override de BlinkService</button>
+        <button onclick="testDevToolsDetection()">Test: Detección DevTools</button>
+        <button onclick="testCodeIntegrity()">Test: Integridad de código</button>
+    </div>
+
+    <div class="test-section">
+        <h3>Tests de Validación de Claves</h3>
+        <button onclick="testValidKey()">Test: Clave válida</button>
+        <button onclick="testInvalidKey()">Test: Clave inválida</button>
+        <button onclick="testEmptyKey()">Test: Clave vacía</button>
+    </div>
+
+    <div class="test-section">
+        <h3>Tests de Inyección de Código</h3>
+        <button onclick="testScriptInjection()">Test: Inyección de scripts</button>
+        <button onclick="testDOMManipulation()">Test: Manipulación DOM</button>
+        <button onclick="testConsoleBypass()">Test: Bypass por consola</button>
+    </div>
+
+    <div class="test-section">
+        <h3>Tests de Rate Limiting</h3>
+        <button onclick="testRateLimit()">Test: Rate limiting server</button>
+        <button onclick="testMultipleRequests()">Test: Múltiples requests</button>
+    </div>
+
+    <div id="results"></div>
+
+    <script src="./security-layer.js"></script>
+    <script>
+        const results = document.getElementById('results');
+        
+        function addResult(testName, status, details) {
+            const div = document.createElement('div');
+            div.className = `test-result ${status.toLowerCase()}`;
+            div.innerHTML = `
+                <strong>${status === 'PASS' ? '✅' : '❌'} ${testName}</strong><br>
+                ${details}
+            `;
+            results.appendChild(div);
+        }
+
+        function clearResults() {
+            results.innerHTML = '';
+        }
+
+        // Test 1: Override de fetch
+        function testFetchOverride() {
+            try {
+                const originalFetch = window.fetch;
+                
+                // Intentar sobrescribir fetch
+                window.fetch = function() {
+                    return Promise.resolve(new Response('hacked'));
+                };
+                
+                // Verificar si el override fue exitoso
+                if (window.fetch === originalFetch) {
+                    addResult('Override de fetch()', 'PASS', 'fetch() está protegido contra modificación');
+                } else {
+                    addResult('Override de fetch()', 'FAIL', 'fetch() pudo ser sobrescrito');
+                }
+                
+                // Restaurar fetch original
+                window.fetch = originalFetch;
+                
+            } catch (error) {
+                addResult('Override de fetch()', 'PASS', `Override bloqueado: ${error.message}`);
+            }
+        }
+
+        // Test 2: Override de BlinkService
+        function testBlinkServiceOverride() {
+            try {
+                if (!window.BlinkService) {
+                    addResult('Override de BlinkService', 'INFO', 'BlinkService no está disponible aún');
+                    return;
+                }
+                
+                const originalInitialize = window.BlinkService.initialize;
+                
+                // Intentar sobrescribir initialize
+                window.BlinkService.initialize = function() {
+                    return Promise.resolve('bypassed');
+                };
+                
+                if (window.BlinkService.initialize === originalInitialize) {
+                    addResult('Override de BlinkService', 'PASS', 'BlinkService.initialize protegido');
+                } else {
+                    addResult('Override de BlinkService', 'FAIL', 'BlinkService.initialize pudo ser modificado');
+                }
+                
+            } catch (error) {
+                addResult('Override de BlinkService', 'PASS', `Override bloqueado: ${error.message}`);
+            }
+        }
+
+        // Test 3: Detección de DevTools
+        function testDevToolsDetection() {
+            addResult('Detección DevTools', 'INFO', 
+                'Abra las DevTools (F12) - el sistema debería detectarlo y mostrar warnings en consola');
+        }
+
+        // Test 4: Integridad de código
+        function testCodeIntegrity() {
+            if (window.securityLayer && window.securityLayer.verifyCodeIntegrity) {
+                try {
+                    window.securityLayer.verifyCodeIntegrity();
+                    addResult('Integridad de código', 'PASS', 'Verificación de integridad completada sin errores');
+                } catch (error) {
+                    addResult('Integridad de código', 'FAIL', `Error en verificación: ${error.message}`);
+                }
+            } else {
+                addResult('Integridad de código', 'FAIL', 'SecurityLayer no disponible');
+            }
+        }
+
+        // Test 5: Clave válida
+        async function testValidKey() {
+            if (!window.securityLayer || !window.securityLayer.validateKey) {
+                addResult('Validación clave válida', 'FAIL', 'SecurityLayer no disponible');
+                return;
+            }
+            
+            try {
+                const validKey = 'dGVzdC1rZXktZm9yLWxvY2FsLWRldmVsb3BtZW50LTEyMzQ1Ng==';
+                const isValid = await window.securityLayer.validateKey(validKey);
+                
+                if (isValid) {
+                    addResult('Validación clave válida', 'PASS', 'Clave de prueba aceptada correctamente');
+                } else {
+                    addResult('Validación clave válida', 'FAIL', 'Clave válida fue rechazada');
+                }
+            } catch (error) {
+                addResult('Validación clave válida', 'FAIL', `Error: ${error.message}`);
+            }
+        }
+
+        // Test 6: Clave inválida
+        async function testInvalidKey() {
+            if (!window.securityLayer || !window.securityLayer.validateKey) {
+                addResult('Validación clave inválida', 'FAIL', 'SecurityLayer no disponible');
+                return;
+            }
+            
+            try {
+                const invalidKey = 'invalid-key-test-123';
+                const isValid = await window.securityLayer.validateKey(invalidKey);
+                
+                if (!isValid) {
+                    addResult('Validación clave inválida', 'PASS', 'Clave inválida correctamente rechazada');
+                } else {
+                    addResult('Validación clave inválida', 'FAIL', 'Clave inválida fue aceptada');
+                }
+            } catch (error) {
+                addResult('Validación clave inválida', 'PASS', `Clave rechazada: ${error.message}`);
+            }
+        }
+
+        // Test 7: Clave vacía
+        async function testEmptyKey() {
+            if (!window.securityLayer || !window.securityLayer.validateKey) {
+                addResult('Validación clave vacía', 'FAIL', 'SecurityLayer no disponible');
+                return;
+            }
+            
+            try {
+                const emptyKey = '';
+                const isValid = await window.securityLayer.validateKey(emptyKey);
+                
+                if (!isValid) {
+                    addResult('Validación clave vacía', 'PASS', 'Clave vacía correctamente rechazada');
+                } else {
+                    addResult('Validación clave vacía', 'FAIL', 'Clave vacía fue aceptada');
+                }
+            } catch (error) {
+                addResult('Validación clave vacía', 'PASS', `Clave vacía rechazada: ${error.message}`);
+            }
+        }
+
+        // Test 8: Inyección de scripts
+        function testScriptInjection() {
+            try {
+                const script = document.createElement('script');
+                script.innerHTML = 'window.hackAttempt = true; console.log("Script injected");';
+                document.body.appendChild(script);
+                
+                setTimeout(() => {
+                    if (window.hackAttempt) {
+                        addResult('Inyección de scripts', 'FAIL', 'Script malicioso se ejecutó correctamente');
+                    } else {
+                        addResult('Inyección de scripts', 'PASS', 'Script malicioso fue bloqueado');
+                    }
+                }, 100);
+                
+            } catch (error) {
+                addResult('Inyección de scripts', 'PASS', `Inyección bloqueada: ${error.message}`);
+            }
+        }
+
+        // Test 9: Manipulación DOM
+        function testDOMManipulation() {
+            try {
+                // Intentar manipular elementos críticos
+                const detector = document.querySelector('document-detector');
+                if (detector) {
+                    const originalConfig = detector.config;
+                    detector.config = { key: 'hacked-key' };
+                    
+                    if (detector.config.key === 'hacked-key') {
+                        addResult('Manipulación DOM', 'FAIL', 'Configuración del detector pudo ser modificada');
+                    } else {
+                        addResult('Manipulación DOM', 'PASS', 'Configuración del detector está protegida');
+                    }
+                } else {
+                    addResult('Manipulación DOM', 'INFO', 'Detector no encontrado - test no aplicable');
+                }
+            } catch (error) {
+                addResult('Manipulación DOM', 'PASS', `Manipulación bloqueada: ${error.message}`);
+            }
+        }
+
+        // Test 10: Bypass por consola
+        function testConsoleBypass() {
+            try {
+                // Simular comandos típicos de bypass en consola
+                eval('window.bypassSecurity = true;');
+                
+                if (window.bypassSecurity) {
+                    addResult('Bypass por consola', 'FAIL', 'Código malicioso ejecutado vía consola');
+                } else {
+                    addResult('Bypass por consola', 'PASS', 'Ejecución de código malicioso bloqueada');
+                }
+            } catch (error) {
+                addResult('Bypass por consola', 'PASS', `Bypass bloqueado: ${error.message}`);
+            }
+        }
+
+        // Test 11: Rate limiting del servidor
+        async function testRateLimit() {
+            try {
+                const requests = [];
+                const invalidKey = 'rate-limit-test-key';
+                
+                // Hacer 6 requests rápidos
+                for (let i = 0; i < 6; i++) {
+                    const request = fetch('http://localhost:3001/api/validate', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Domain': 'localhost',
+                            'X-Timestamp': Date.now().toString()
+                        },
+                        body: JSON.stringify({
+                            key: invalidKey,
+                            domain: 'localhost',
+                            userAgent: 'SecurityTest/1.0',
+                            challenge: 'test'
+                        })
+                    });
+                    requests.push(request);
+                }
+                
+                const responses = await Promise.all(requests);
+                const rateLimitHit = responses.some(r => r.status === 429);
+                
+                if (rateLimitHit) {
+                    addResult('Rate limiting server', 'PASS', 'Rate limit activado correctamente');
+                } else {
+                    addResult('Rate limiting server', 'FAIL', 'Rate limit no se activó');
+                }
+                
+            } catch (error) {
+                addResult('Rate limiting server', 'FAIL', `Error probando rate limit: ${error.message}`);
+            }
+        }
+
+        // Test 12: Múltiples requests
+        async function testMultipleRequests() {
+            try {
+                const validKey = 'dGVzdC1rZXktZm9yLWxvY2FsLWRldmVsb3BtZW50LTEyMzQ1Ng==';
+                const requests = [];
+                
+                // 3 requests paralelos con clave válida
+                for (let i = 0; i < 3; i++) {
+                    const request = fetch('http://localhost:3001/api/validate', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Domain': 'localhost',
+                            'X-Timestamp': Date.now().toString()
+                        },
+                        body: JSON.stringify({
+                            key: validKey,
+                            domain: 'localhost',
+                            userAgent: 'SecurityTest/1.0',
+                            challenge: 'test'
+                        })
+                    });
+                    requests.push(request);
+                }
+                
+                const responses = await Promise.all(requests);
+                const allValid = responses.every(r => r.status === 200);
+                
+                if (allValid) {
+                    addResult('Múltiples requests', 'PASS', 'Servidor maneja requests paralelos correctamente');
+                } else {
+                    addResult('Múltiples requests', 'FAIL', 'Problemas con requests paralelos');
+                }
+                
+            } catch (error) {
+                addResult('Múltiples requests', 'FAIL', `Error: ${error.message}`);
+            }
+        }
+
+        // Ejecutar tests automáticamente al cargar
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🧪 Página de pruebas de seguridad cargada');
+            console.log('📋 Ejecute los tests manualmente clickeando los botones');
+            console.log('🔍 Abra las DevTools para ver si se detectan');
+        });
+    </script>
+</body>
+</html>

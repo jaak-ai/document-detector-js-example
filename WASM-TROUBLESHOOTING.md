@@ -1,0 +1,186 @@
+# 🔧 BlinkID SDK WASM Module Loading Troubleshooting Guide
+
+## ❌ Common Error: "Cannot read properties of undefined (reading 'mbWasmModule')"
+
+This error typically occurs when the BlinkID WebAssembly module fails to load or initialize properly.
+
+## 🎯 Step-by-Step Solutions
+
+### **Solution 1: Enable Cross-Origin Isolation** ⭐ **MOST IMPORTANT**
+
+WASM modules often require SharedArrayBuffer, which needs cross-origin isolation:
+
+```html
+<!-- Add these headers to your HTML or server configuration -->
+<meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin">
+<meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp">
+```
+
+**Server Configuration (Express.js):**
+```javascript
+app.use((req, res, next) => {
+    res.header('Cross-Origin-Opener-Policy', 'same-origin');
+    res.header('Cross-Origin-Embedder-Policy', 'require-corp');
+    next();
+});
+```
+
+### **Solution 2: Update Content Security Policy**
+
+Ensure your CSP allows WASM loading:
+
+```html
+<meta http-equiv="Content-Security-Policy" 
+      content="default-src 'self'; 
+               script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://storage.googleapis.com; 
+               worker-src blob: 'self' data: https://unpkg.com;
+               wasm-src 'self' blob: data: https://unpkg.com;
+               connect-src 'self' https://unpkg.com https://storage.googleapis.com;">
+```
+
+### **Solution 3: Use Proper Server Setup**
+
+**❌ Don't use:** `live-server` (doesn't support required headers)
+**✅ Use:** Custom Express server with proper headers
+
+```bash
+# Use the provided server
+npm run dev-wasm
+```
+
+### **Solution 4: Check Browser Compatibility**
+
+**Minimum Requirements:**
+- Chrome 57+
+- Firefox 52+
+- Safari 11+
+- Edge 16+
+
+**Check support:**
+```javascript
+if (typeof WebAssembly === 'undefined') {
+    console.error('WebAssembly not supported');
+}
+if (typeof SharedArrayBuffer === 'undefined') {
+    console.warn('SharedArrayBuffer not available');
+}
+```
+
+### **Solution 5: Try Alternative CDN Sources**
+
+If unpkg.com fails, try:
+
+1. **JSDelivr:** `https://cdn.jsdelivr.net/npm/@jaak.ai/document-detector@3.0.0-dev.5`
+2. **Alternative version:** Try `@3.0.0-dev.4` or `@latest`
+
+### **Solution 6: Network and Firewall Issues**
+
+**Check if blocked:**
+- Corporate firewalls
+- Ad blockers
+- VPN restrictions
+- DNS issues
+
+**Test connectivity:**
+```bash
+curl -I https://unpkg.com/@jaak.ai/document-detector@3.0.0-dev.5
+curl -I https://storage.googleapis.com
+```
+
+## 🛠️ Diagnostic Tools
+
+### **1. Run WASM Diagnostics**
+
+Add this to your HTML and check browser console:
+
+```html
+<script src="./wasm-debug.js"></script>
+```
+
+### **2. Manual Checks**
+
+**Console Commands:**
+```javascript
+// Check WebAssembly support
+console.log('WebAssembly:', typeof WebAssembly !== 'undefined');
+
+// Check SharedArrayBuffer
+console.log('SharedArrayBuffer:', typeof SharedArrayBuffer !== 'undefined');
+
+// Check cross-origin isolation
+console.log('Cross-origin isolated:', window.crossOriginIsolated);
+
+// Check if component loaded
+console.log('Component loaded:', customElements.get('document-detector') !== undefined);
+```
+
+## 🔍 Common Issues and Solutions
+
+### **Issue: "SharedArrayBuffer is not defined"**
+**Solution:** Enable cross-origin isolation headers (Solution 1)
+
+### **Issue: "Failed to fetch WASM module"**
+**Solutions:**
+- Check internet connection
+- Try alternative CDN (Solution 5)
+- Check firewall/ad blocker settings
+
+### **Issue: "WebAssembly is not supported"**
+**Solution:** Update browser to a newer version
+
+### **Issue: "Worker failed to load"**
+**Solutions:**
+- Update CSP to allow workers (Solution 2)
+- Check network connectivity
+- Verify CDN accessibility
+
+### **Issue: Component appears but doesn't initialize**
+**Solutions:**
+- Check API key validity
+- Verify server validation endpoint is running
+- Check browser console for additional errors
+
+## 🚀 Quick Fix Commands
+
+```bash
+# 1. Install dependencies
+npm install
+
+# 2. Start validation server
+npm run server
+
+# 3. Start static server with proper headers (in new terminal)
+npm run static
+
+# 4. Open http://127.0.0.1:8000
+```
+
+## 📋 Testing Checklist
+
+- [ ] WebAssembly supported in browser
+- [ ] SharedArrayBuffer available
+- [ ] Cross-origin isolation enabled
+- [ ] CDN accessible
+- [ ] No firewall/ad blocker interference
+- [ ] Valid API key provided
+- [ ] Server validation endpoint running
+- [ ] Proper CSP configuration
+
+## 🔗 Additional Resources
+
+- [WebAssembly Browser Support](https://caniuse.com/wasm)
+- [SharedArrayBuffer Requirements](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SharedArrayBuffer)
+- [Cross-Origin Isolation Guide](https://web.dev/cross-origin-isolation-guide/)
+
+## 📞 Still Having Issues?
+
+1. Run the diagnostic script: `wasm-debug.js`
+2. Check browser console for specific errors
+3. Verify all checklist items above
+4. Try a different browser/device
+5. Contact JAAK.ai support with diagnostic results
+
+---
+
+**📄 Generated by:** Document Detector Troubleshooting Tool
+**🔄 Last Updated:** $(date)

@@ -1,14 +1,42 @@
 {
-  "name": "document-detector-usage",
-  "version": "1.0.0",
-  "main": "index.js",
+  "name": "document-detector-secure-example",
+  "version": "1.1.0",
+  "description": "Enhanced security implementation for document detector",
+  "main": "index.html",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server-validation.js & node static-server.js",
+    "server": "node server-validation.js",
+    "static": "node static-server.js",
+    "dev": "live-server --port=8000 --host=127.0.0.1",
+    "dev-wasm": "node static-server.js",
+    "test": "node test-document-detector.js && node test-integration.js",
+    "test:security": "node test-security.js",
+    "test:integration": "node test-integration.js",
+    "test:all": "npm run test:security && npm run test && npm run test:integration",
+    "security-audit": "npm audit --audit-level=high",
+    "obfuscate": "javascript-obfuscator security-layer.js --output obfuscated-security.js --compact true --string-array true"
   },
-  "author": "",
+  "author": "Security Team",
   "license": "ISC",
-  "description": "",
   "dependencies": {
-    "@jaak.ai/document-detector": "^2.0.5"
+    "@jaak.ai/document-detector": "^2.0.5",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "express": "^4.18.2",
+    "express-rate-limit": "^6.7.0",
+    "helmet": "^6.1.5",
+    "javascript-obfuscator": "^4.0.2",
+    "live-server": "^1.2.2"
+  },
+  "keywords": [
+    "document-detection",
+    "security",
+    "anti-tampering",
+    "validation"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jaak-ai/document-detector-js-example-secure.git"
   }
 }
