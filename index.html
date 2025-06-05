@@ -7,7 +7,7 @@
 
     <script
             type="module"
-            src="https://unpkg.com/@jaak.ai/document-detector@3.0.0-dev.5"></script>
+            src="https://unpkg.com/@jaak.ai/stamps@1.0.0-dev.7"></script>
 
     <style>
         body {
@@ -107,6 +107,11 @@
             overflow: auto;
             max-height: 300px;
         }
+        
+        document-detector {
+            width: 800%;
+            height: 600px;
+        }
     </style>
 </head>
 <body>
@@ -178,6 +183,9 @@
                 changeSide: 'Voltea tu documento',
                 adjustAngle: 'Ajusta el ángulo',
                 cameraFeedbackBlur: 'Mantén la cámara estable'
+            },
+            sdkConfig: {
+                forceMobileMode: true
             }
         };
         
