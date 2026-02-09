@@ -1,0 +1,62 @@
+{
+  "repo": "document-detector-js-example",
+  "path": "/Users/cristian/Projects/tools/sos/repo/document-detector-js-example",
+  "scanned_at": "2026-02-09T23:46:15Z",
+  "project_type": {
+    "languages": [
+      "node"
+    ],
+    "frameworks": [
+      "express"
+    ],
+    "package_managers": [
+      "npm"
+    ],
+    "is_monorepo": false,
+    "sub_projects": []
+  },
+  "service_metadata": {
+    "source": "service_metadata",
+    "exposed_ports": [],
+    "health_check_paths": []
+  },
+  "cloud_references": {
+    "source": "cloud_refs",
+    "gcp": [],
+    "aws": [],
+    "oci": []
+  },
+  "findings": {
+    "env_files": [],
+    "dockerfiles": [],
+    "k8s_manifests": [],
+    "k8s_configmaps": [],
+    "k8s_secrets": [],
+    "github_actions": [],
+    "workflow_inline": [],
+    "source_code": {
+      "source": "source_code",
+      "variables": [
+        {
+          "name": "PORT",
+          "lang": "node",
+          "pattern": [
+            "process.env"
+          ]
+        }
+      ]
+    },
+    "config_files": [],
+    "config_var_refs": [],
+    "entrypoint_scripts": [],
+    "frontend_environments": [],
+    "helm_charts": [],
+    "docker_compose": [],
+    "vault": {
+      "source": "vault",
+      "vault_paths": [],
+      "vault_annotations": [],
+      "external_secret_refs": []
+    }
+  }
+}

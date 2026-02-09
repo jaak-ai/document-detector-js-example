@@ -1,0 +1,15 @@
+[
+  {
+    "name": "PORT",
+    "sources": [
+      "code"
+    ],
+    "languages": [
+      "node"
+    ],
+    "patterns": [
+      "process.env"
+    ],
+    "found_in_count": 1
+  }
+]
